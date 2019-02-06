@@ -14,3 +14,9 @@
 /LambdaLab/build/
 /LambdaLab/dist/
 /LambdaLab/nbproject/private/
+
+# IntelliJ IDEA Files #
+/*.iml
+*.iml
+.idea/
+target/
