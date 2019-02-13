@@ -332,7 +332,13 @@ public class C_DefaultMethods {
                                                        "c", "charlie",
                                                        "d", "delta"));
 
-        // TODO write code transform the map
+        map.forEach(
+                (key, value) -> map.put(key, value.toUpperCase())
+        );
+
+        keys.stream()
+            .filter(key -> map.get(key) == null)
+            .forEach(key -> map.put(key, key));
 
         assertEquals(Map.of("a", "ALFA",
                             "b", "BRAVO",
