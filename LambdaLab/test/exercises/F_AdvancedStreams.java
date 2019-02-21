@@ -1,33 +1,25 @@
 package exercises;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IntSummaryStatistics;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.partitioningBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * This set of exercises covers advanced stream operations,
@@ -44,11 +36,13 @@ public class F_AdvancedStreams {
      * "reader" that has been set up for you to read from the text file, and
      * use SPLIT_PATTERN for splitting the line into words.
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void f1_mapLengthToWordList() throws IOException {
-        Map<Integer, List<String>> result = null; // TODO
+    @Test
+    public void f1_mapLengthToWordList() {
+        Map<Integer, List<String>> result = reader
+                .lines()
+                .flatMap(SPLIT_PATTERN::splitAsStream)
+                .collect(groupingBy(String::length));
 
         assertEquals(10, result.get(7).size());
         assertEquals(Set.of("beauty's", "increase", "ornament"), new HashSet<>(result.get(8)));
@@ -70,11 +64,13 @@ public class F_AdvancedStreams {
      * casing the words. This is the same as the previous exercise except
      * the map values are the count of words instead of a list of words.
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void f2_mapLengthToWordCount() throws IOException {
-        Map<Integer, Long> result = null; // TODO
+    @Test
+    public void f2_mapLengthToWordCount() {
+        Map<Integer, Long> result = reader
+                .lines()
+                .flatMap(SPLIT_PATTERN::splitAsStream)
+                .collect(groupingBy(String::length, Collectors.counting()));
 
         assertEquals(Map.ofEntries(entry( 1,  1L),
                                    entry( 2, 11L),
@@ -106,11 +102,13 @@ public class F_AdvancedStreams {
      * lower case. Extra challenge: implement two solutions, one that uses
      * groupingBy() and the other that uses toMap().
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void f3_wordFrequencies() throws IOException {
-        Map<String, Long> result = null; // TODO
+    @Test
+    public void f3_wordFrequencies() {
+        Map<String, Long> result = reader
+                .lines()
+                .flatMap(SPLIT_PATTERN::splitAsStream)
+                .collect(groupingBy(word -> word, Collectors.counting()));
 
         assertEquals(2L, (long)result.get("tender"));
         assertEquals(6L, (long)result.get("the"));
@@ -145,11 +143,16 @@ public class F_AdvancedStreams {
      * representation of the result would be:
      *     {b={3=[bar, baz], 4=[bazz]}, f={3=[foo, foo]}}
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void f4_nestedMaps() throws IOException {
-        Map<String, Map<Integer, List<String>>> result = null; // TODO
+    @Test
+    public void f4_nestedMaps() {
+        Map<String, Map<Integer, List<String>>> result =
+                reader.lines()
+                    .flatMap(SPLIT_PATTERN::splitAsStream)
+                    .collect(groupingBy(
+                                word -> word.substring(0, 1),
+                                groupingBy(String::length))
+                    );
 
         assertEquals("[abundance]", result.get("a").get(9).toString());
         assertEquals("[by, be, by]", result.get("b").get(2).toString());
@@ -177,16 +180,32 @@ public class F_AdvancedStreams {
      * in this stream. Since the input is a stream, this necessitates making a single
      * pass over the input.
      */
-    @Test @Ignore
+    @Test
     public void f5_separateOddEvenSums() {
         IntStream input = new Random(987523).ints(20, 0, 100);
 
-        int sumEvens = 0; // TODO
-        int sumOdds  = 0; // TODO
+        Map<Boolean, List<Integer>> intPartitions = input
+                .boxed()
+                .collect(partitioningBy(this::isEven));
+
+        int sumEvens = intPartitions
+                            .get(Boolean.TRUE)
+                            .stream()
+                            .reduce(0, (first, second) -> first + second);
+
+        int sumOdds  = intPartitions
+                            .get(Boolean.FALSE)
+                            .stream()
+                            .reduce(0, (first, second) -> first + second);
 
         assertEquals(516, sumEvens);
         assertEquals(614, sumOdds);
     }
+
+    private boolean isEven(Integer value) {
+        return value % 2 == 0;
+    }
+
     // Hint 1:
     // <editor-fold defaultstate="collapsed">
     // Use Collectors.partitioningBy().
@@ -205,16 +224,23 @@ public class F_AdvancedStreams {
      * is a parallel stream, so you MUST write a proper combiner function to get the
      * correct result.
      */
-    @Test @Ignore
+    @Test
     public void f6_insertBeginningAndEnd() {
         Stream<String> input = List.of(
             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
             "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
             .parallelStream();
 
-        String result = input.collect(null, null, null).toString();
-        // TODO fill in lambda expressions or method references
-        // in place of the nulls in the line above.
+        String result = input
+                .collect(
+                        StringBuilder::new,
+                        (first, second) -> first.insert(0, second).append(second),
+                        (first, second) -> {
+                            int half = second.length() / 2;
+                            first.insert(0, second.substring(0, half));
+                            first.append(second.substring(half));
+                        })
+                .toString();
 
         assertEquals("tsrqponmlkjihgfedcbaabcdefghijklmnopqrst", result);
     }
@@ -254,11 +280,14 @@ public class F_AdvancedStreams {
         // rely on implicit no-arg constructor
 
         void accumulate(String s) {
-            // TODO write code to accumulate a single string into this object
+            set.add(s);
+            count++;
+
         }
 
         void combine(TotalAndDistinct other) {
-            // TODO write code to combine the other object into this one
+            count += other.count;
+            set.addAll(other.set);
         }
 
         int getTotalCount() { return count; }
@@ -270,11 +299,11 @@ public class F_AdvancedStreams {
     // Don't overthink it.
     // </editor-fold>
 
-    @Test @Ignore
+    @Test
     public void f7_countTotalAndDistinctWords() {
         List<String> allWords = reader.lines()
                                       .map(String::toLowerCase)
-                                      .flatMap(line -> SPLIT_PATTERN.splitAsStream(line))
+                                      .flatMap(SPLIT_PATTERN::splitAsStream)
                                       .collect(Collectors.toList());
 
         TotalAndDistinct totalAndDistinct =
@@ -296,7 +325,7 @@ public class F_AdvancedStreams {
 
 
     // Pattern for splitting a string into words
-    static final Pattern SPLIT_PATTERN = Pattern.compile("[- .:,]+");
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("[- .:,]+");
 
     private BufferedReader reader;
 
