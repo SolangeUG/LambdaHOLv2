@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,14 +32,22 @@ public class D_SimpleStreams {
      * Given a list of words, create an output list that contains
      * only the odd-length words, converted to upper case.
      */
-    @Test @Ignore
+    @Test
     public void d1_upcaseOddLengthWords() {
         List<String> input = List.of(
             "alfa", "bravo", "charlie", "delta", "echo", "foxtrot");
 
-        List<String> result = null; // TODO
+        List<String> result = input
+                .stream()
+                .filter(this::isOddLengthed)
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
 
         assertEquals(List.of("BRAVO", "CHARLIE", "DELTA", "FOXTROT"), result);
+    }
+
+    private boolean isOddLengthed(String word) {
+        return word.length() % 2 != 0;
     }
     // Hint 1:
     // <editor-fold defaultstate="collapsed">
@@ -57,14 +65,26 @@ public class D_SimpleStreams {
      * second letter from each, and join them, separated by commas,
      * into a single string. Watch for off-by-one errors.
      */
-    @Test @Ignore
+    @Test
     public void d2_joinStreamRange() {
         List<String> input = List.of(
             "alfa", "bravo", "charlie", "delta", "echo", "foxtrot");
 
-        String result = ""; // TODO
+        String result = input.stream()
+                .filter(word -> input.subList(2, 5).contains(word))
+                .map(this::secondLetterFrom)
+                .reduce("", this::join)
+                .substring(1);
 
         assertEquals("h,e,c", result);
+    }
+
+    private String join(String first, String second) {
+        return new StringJoiner(",").add(first).add(second).toString();
+    }
+
+    private String secondLetterFrom(String word) {
+        return "" + word.charAt(1);
     }
     // Hint 1:
     // <editor-fold defaultstate="collapsed">
@@ -81,11 +101,10 @@ public class D_SimpleStreams {
      * use the BufferedReader named "reader" that has already been
      * opened for you.)
      *
-     * @throws IOException
      */
     @Test @Ignore
-    public void d3_countLinesInFile() throws IOException {
-        long count = 0; // TODO
+    public void d3_countLinesInFile() {
+        long count = reader.lines().count();
 
         assertEquals(14, count);
     }
@@ -102,11 +121,13 @@ public class D_SimpleStreams {
     /**
      * Find the length of the longest line in the text file.
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void d4_findLengthOfLongestLine() throws IOException {
-        int longestLength = 0; // TODO
+    @Test
+    public void d4_findLengthOfLongestLine() {
+        int longestLength = reader
+                .lines()
+                .max(Comparator.comparingInt(String::length))
+                .get().length();
 
         assertEquals(53, longestLength);
     }
@@ -128,11 +149,13 @@ public class D_SimpleStreams {
     /**
      * Find the longest line in the text file.
      *
-     * @throws IOException
      */
-    @Test @Ignore
-    public void d5_findLongestLine() throws IOException {
-        String longest = null; // TODO
+    @Test
+    public void d5_findLongestLine() {
+        String longest = reader
+                .lines()
+                .max(Comparator.comparingInt(String::length))
+                .get();
 
         assertEquals("Feed'st thy light's flame with self-substantial fuel,", longest);
     }
@@ -150,14 +173,23 @@ public class D_SimpleStreams {
      * Select the longest words from the input list. That is, select the words
      * whose lengths are equal to the maximum word length.
      */
-    @Test @Ignore
+    @Test
     public void d6_selectLongestWords() {
         List<String> input = List.of(
             "alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel");
 
-        List<String> result = null; // TODO
+        List<String> result = input
+                .stream()
+                .max(Comparator.comparingInt(String::length))
+                .map(word -> input.stream().filter(sameLengthAs(word)))
+                .get()
+                .collect(Collectors.toList());
 
         assertEquals(List.of("charlie", "foxtrot"), result);
+    }
+
+    private Predicate<String> sameLengthAs(String word) {
+        return item -> item.length() == word.length();
     }
     // Hint:
     // <editor-fold defaultstate="collapsed">
@@ -168,12 +200,15 @@ public class D_SimpleStreams {
      * Select the list of words from the input list whose length is greater than
      * the word's position in the list (starting from zero) .
      */
-    @Test @Ignore
+    @Test
     public void d7_selectByLengthAndPosition() {
         List<String> input = List.of(
             "alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel");
 
-        List<String> result = null; // TODO
+        List<String> result = input
+                .stream()
+                .filter(word -> word.length() > input.indexOf(word))
+                .collect(Collectors.toList());
 
         assertEquals(List.of("alfa", "bravo", "charlie", "delta", "foxtrot"), result);
     }
