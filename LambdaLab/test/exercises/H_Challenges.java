@@ -1,36 +1,17 @@
 package exercises;
 
+import org.junit.Test;
+
 import java.io.Serializable;
-import java.lang.reflect.Modifier;
-import java.util.AbstractMap;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalInt;
-import java.util.RandomAccess;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.*;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class H_Challenges {
 
@@ -57,16 +38,24 @@ public class H_Challenges {
      *     ...
      *   ]
      */
-    @Test @Ignore
+    @Test
     public void h1_denormalizeMap() {
         Map<Integer, List<String>> input = new HashMap<>();
         input.put(4, Arrays.asList("ibex", "hedgehog", "wombat"));
         input.put(6, Arrays.asList("ant", "beetle", "cricket"));
         input.put(8, Arrays.asList("octopus", "spider", "squid"));
         input.put(10, Arrays.asList("crab", "lobster", "scorpion"));
-        input.put(750, Arrays.asList("millipede"));
+        input.put(750, Collections.singletonList("millipede"));
 
-        List<String> result = null; // TODO
+        List<String> result = new ArrayList<>();
+
+        input.forEach(
+                (key, values) ->
+                        values.forEach(
+                                name -> result.add(name + ":" + key)
+                        )
+        );
+
 
         assertEquals(13, result.size());
         assertTrue(result.contains("ibex:4"));
@@ -121,7 +110,7 @@ public class H_Challenges {
      * pipeline (not counting nested streams), that is, in a single pass
      * over the input, without storing anything in a temporary collection.
      */
-    @Test @Ignore
+    @Test
     public void h2_invertMultiMap() {
         Map<String, Set<Integer>> input = new HashMap<>();
         input.put("a", new HashSet<>(Arrays.asList(1, 2)));
@@ -159,7 +148,7 @@ public class H_Challenges {
      * The type of the input is a Stream, so you cannot access elements at random.
      * The stream is run in parallel, so the combiner function must be correct.
      */
-    @Test @Ignore
+    @Test
     public void h3_selectLongestWordsOnePass() {
         Stream<String> input = Stream.of(
             "alfa", "bravo", "charlie", "delta",
@@ -186,7 +175,7 @@ public class H_Challenges {
      * similar to Python's itertools.groupby function, but it differs
      * from Java's Collectors.groupingBy() collector.
      */
-    @Test @Ignore
+    @Test
     public void h4_splitCharacterRuns() {
         String input = "aaaaabbccccdeeeeeeaaafff";
 
@@ -206,7 +195,7 @@ public class H_Challenges {
      * Since the stream is parallel, you MUST write a proper combiner function in order to get
      * the correct result.
      */
-    @Test @Ignore
+    @Test
     public void h5_reversingCollector() {
         Stream<String> input =
             IntStream.range(0, 100).mapToObj(String::valueOf).parallel();
@@ -252,7 +241,7 @@ public class H_Challenges {
     // and a majority-finding pass.
     // </editor-fold>
 
-    @Test @Ignore
+    @Test
     public void h6_majority() {
         int[] array1 = { 13, 13, 24, 35, 24, 24, 35, 24, 24 };
         int[] array2 = { 13, 13, 24, 35, 24, 24, 35, 24 };
@@ -292,7 +281,7 @@ public class H_Challenges {
         }
     }
 
-    @Test @Ignore
+    @Test
     public void h7_shoemaker() {
         Supplier<Shoe> sup1 = makeShoeSupplier(Shoe::new, 9);
         Supplier<Shoe> sup2 = makeShoeSupplier(Shoe::new, 13);
@@ -316,7 +305,7 @@ public class H_Challenges {
      * create a map with two boolean keys, true is associated to the interfaces
      * and false with the concrete classes.
      */
-    @Test @Ignore
+    @Test
     public void h8_mapOfClassesAndInterfaces() {
 
         Class<?> origin = ArrayList.class;
@@ -345,7 +334,7 @@ public class H_Challenges {
      * and false with the concrete classes. Do that for the provided classes, and
      * arrange the result in a Map<Class, ...> with those classes as the keys.
      */
-    @Test @Ignore
+    @Test
     public void h9_mapOfMapsOfClassesAndInterfaces() {
 
         List<Class<?>> origin = List.of(ArrayList.class, HashSet.class, LinkedHashSet.class);
